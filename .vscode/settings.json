@@ -1,17 +1,17 @@
 {
     "typescript.tsdk": "node_modules/typescript/lib",
-    // "files.exclude": {
-    //     "**/node_modules": true,
-    //     "**/build": true,
-    //     ".*": true,
-    //     "docker": true,
-    //     "docker-compose.yaml": true,
-    //     "lerna.json": true,
-    //     "LICENSE": true,
-    //     "tslint.json": true,
-    //     "yarn.lock": true,
-    //     "packages/backend": true,
-    //     "packages/frontend/tsconfig.json": true,
-    //     "packages/frontend/src/react-app-env.d.ts": true
-    // }
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/build": true,
+        ".*": true,
+        "docker": true,
+        "docker-compose.yaml": true,
+        "lerna.json": true,
+        "LICENSE": true,
+        "tslint.json": true,
+        "yarn.lock": true,
+        "packages/backend": true,
+        "packages/frontend/tsconfig.json": true,
+        "packages/frontend/src/react-app-env.d.ts": true
+    }
 }
