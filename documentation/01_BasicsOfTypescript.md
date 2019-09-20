@@ -487,20 +487,28 @@ In the last invocation especially you should notice that once again Typescript i
 Generics exist for classes and other types as well:
 
 ```typescript
-type Maybe<T> = T | undefined;
+type Maybe<T> = T | undefined;
 
 type ResponseCode = Maybe<{ value: number; }>;
 // Is equivalent to
 type ResponseCodeFull = { value: number; } | undefined;
 
+type Predicate<T> = (arg: T) => boolean;
+
+const isThirteen: Predicate<number> = (arg) => arg === 13;
+
 class Component<PropsType, StateType> {
-    props: PropsType;
-    state: StateType;
+    public props: PropsType;
+    public state: StateType;
+
+    /* ... */
 
     public setState(newState: StateType): StateType {
         /* ... */
     }
 }
 ```
+
+In the previous snippet we were able to define a generic `Predicate` type that works with all argument types. Furthermore you can see a version of `isThirteen` *explicitly* typed as `Predicate<number>` which implies that the argument `arg` **must** be a `number` hence we don't even need to annotate it explicitly.
 
 *Beim letzten Beispiel verstehe ich nur noch Bahnhof.*
