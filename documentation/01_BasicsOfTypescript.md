@@ -9,12 +9,16 @@
   - [Readonly Arrays](#readonly-arrays)
   - [Tuples](#tuples)
   - [Enums](#enums)
+  - [Constant Enums](#constant-enums)
   - [Any](#any)
   - [Unknown](#unknown)
   - [Null and Undefined](#null-and-undefined)
   - [Never](#never)
 - [Advanced Types](#advanced-types)
-  - [Constant Enums](#constant-enums)
+  - [Type Aliases](#type-aliases)
+  - [Intersection Types](#intersection-types)
+  - [Union Types](#union-types)
+  - [Generics](#generics)
 
 ## What is Typescript?
 
@@ -181,6 +185,29 @@ console.log(shapeName); // Displays 'Square'
 >
 > This reverse lookups do not work for enums with string values.
 
+### Constant Enums
+
+When compiling enums a lot of code is internally created to allow reverse lookups which might not be necessary most of the time. You can optimize this by enabling so-called type erasure for enums by making them constant and inlining their values. This means no traces of the actual enumeration will be in the generated code which transforms the following snippet
+
+```typescript
+const enum Colors {
+    Red,
+    Black,
+    Green,
+    White,
+}
+
+const colors = [Colors.Red, Colors.Black, Colors.Green, Colors.White];
+```
+
+into this terse definition
+
+```typescript
+var colors = [0, 1, 2, 3];
+```
+
+which reduces bundle size.
+
 ### Any
 
 When using 3rd party libraries or working with dynamic data that you can't clearly type you can opt-out of type checking entirely (unless your Linter complains about opting out) by using the `any` type.
@@ -204,7 +231,7 @@ The `any` can be used to opt-out of type checking in legacy code that you migrat
 
 ### Unknown
 
-Just recently Typescript has introduce the `unknown` type as a type-safe alternative to `any`. We've seen that you can assign virtually `any`thing (duh.) to an `any` variable. Since you opt-out of type checking using `any` the following snippet will compile, but might throw errors during runtime:
+Just recently Typescript has introduced the `unknown` type as a type-safe alternative to `any`. We've seen that you can assign virtually `any`thing (duh.) to an `any` variable. Since you opt-out of type checking using `any` the following snippet will compile, but might throw errors during runtime:
 
 ```typescript
 let variable: any = 42;
@@ -286,25 +313,167 @@ We are attempting to append a `number` to a `never[]` which isn't posible since 
 
 ## Advanced Types
 
-### Constant Enums
+Most of the intimidating magic in Typescript stems from the type system and writing custom types using a vast array of syntactical elements and helper types. We will be looking into (rather abstract) examples where we want to type complex objects.
 
-When compiling enums a lot of code is internally created to allow reverse lookups which might not be necessary most of the time. You can optimize this by enabling so-called type erasure for enums by making them constant and inlining their values. This means no traces of the actual enumeration will be in the generated code which transforms the following snippet
+### Type Aliases
+
+We can use type aliases to create a new name for a type. This is useful if you are for example describing the attributes of an UI component and want to collect them into a single type:
 
 ```typescript
-const enum Colors {
-    Red,
-    Black,
-    Green,
-    White,
+type ComponentProperties = {
+    stringAttribute: string;
+    numberAttribute: number;
+    isThirteen(arg: number): boolean;
+};
+```
+
+Type aliases can be used to rename various different types:
+
+```typescript
+// In React component properties are usually called props.
+type Props = ComponentProperties;
+type Action = () => void;
+type NumberPredicate = (value: number) => boolean;
+```
+
+### Intersection Types
+
+Often it is necessary to drop the object-oriented codestyle and work with injected attributes using *mixins*. In the context of functional programming this is related to higher-order functions or in the context of React previously known as working with higher-order components.
+
+Using such a mixin will yield an object that has been extended with further attributes. We can attempt to sketch a function, that might merge two objects into one that will look like this:
+
+```typescript
+type ObjectTypeA = {
+    stringVariableA: string;
+    numberVariableA: number;
+};
+
+type ObjectTypeB = {
+    booleanVariableB: boolean;
+    functionInB(): void;
+};
+
+// This intersection type ...
+type IntersectionOfAandB = ObjectTypeA & ObjectTypeB;
+// ... is equivalent to this manually written type.
+type ManualIntersectionOfAandB = {
+    stringVariableA: string;
+    numberVariableA: number;
+    booleanVariableB: boolean;
+    functionInB(): void;
+};
+
+// This is a simple method that merges both objects using spread syntax.
+const merge = (objA: ObjectTypeA, objB: ObjectTypeB): ObjectTypeA & ObjectTypeB
+    => ({...objA, ...objB});
+```
+
+### Union Types
+
+Another useful syntactic element are union types used to describe that an "either/or" type. You can write a function that doesn't restrict its argument to a single type, but to multiple ones.
+
+```typescript
+const unionMethod = (arg: number | string) => /* ... */;
+```
+
+This method accepts either a `number` or a `string` and is internally implemented in a way that both types are handled correctly. A similar notion exists for variables that needs some intuition when working with them:
+
+```typescript
+class Human {
+    public speak() { /* ... */ }
+    public move() { /* ... */ }
 }
 
-const colors = [Colors.Red, Colors.Black, Colors.Green, Colors.White];
+class Insect {
+    public move() { /* ... */ }
+}
+
+const entity: Human | Insect = getEitherHumanOrInsect();
+entity.move();
+entity.speak();
+//     ~~~~~
+// error:
+// Property 'speak' does not exist on type 'Human | Insect'.
+//   Property 'speak' does not exist on type 'Insect'.
 ```
 
-into this terse definition
+When attempting to access members of the `entity` variable we (any Typescript) can certainly assume that it has the `move` method since it is contained in both `Human` and `Insect`. However trying to invoke `speak` might fail during runtime since we did not distinguish between either types yet and Typescript is complaining.
+
+Union types especially allow us to denote optional / possibly undefined variables as follows:
 
 ```typescript
-var colors = [0, 1, 2, 3];
+type Props = {
+    requiredString: string;
+    optionalNumber: number | undefined;
+};
 ```
 
-which reduces bundle size.
+In fact Typescript provides the question mark operator `?` to remove the necessity of adding `| undefined` to all optional variables:
+
+```typescript
+type Props = {
+    requiredString: string;
+    optionalNumber?: number/* | undefined */;
+};
+```
+
+### Generics
+
+It can happen that you end up with a type, method or class that you can apply similar in the context of various types. A rather artificial example is the following:
+
+```typescript
+const numberToString = (arg: number) => `${arg}`;
+const booleanToString = (arg: boolean) => `${arg}`;
+const dateToString = (arg: Date) => `${arg}`;
+// ...
+```
+
+You'll most likely notice that the only difference is the annotated type so we could use a union type to combine all allowed types:
+
+```typescript
+const unionToString = (arg: number | boolean | Date) => `${arg}`;
+```
+
+This can end up being quite convoluted when you support many types and just want a *generic* method for virtually all types. Thus *generics* have been borrowed from other programming languages that are placeholder for types:
+
+```typescript
+function toString<ArgType>(arg: ArgType) {
+    return `${arg}`;
+}
+```
+
+> **Warning**
+>
+> The method `toString` has been intentionally written as `function` rather than a lambda. In combination with React and some extensions to Typescript this won't work without a minor tweak that is out of scope for this chapter.
+
+Now you can invoke this method as follows:
+
+```typescript
+const string1 = toString<number>(42);
+const string2 = toString<boolean>(false);
+const string3 = toString<number>("string");
+//                               ~~~~~~~~
+// error: Argument of type '"string"' is not assignable to parameter of type 'number'.
+const string4 = toString(42);
+```
+
+In the last invocation especially you should notice that once again Typescript is able to deduce a type, in this case a generic type, from its usage.
+
+Generics exist for classes and other types as well:
+
+```typescript
+type Maybe<T> = T | undefined;
+
+type ResponseCode = Maybe<{ value: number; }>;
+// Is equivalent to
+type ResponseCodeFull = { value: number; } | undefined;
+
+class Component<PropsType, StateType> {
+    props: PropsType;
+    state: StateType;
+
+    public setState(newState: StateType): StateType {
+        /* ... */
+    }
+}
+```
