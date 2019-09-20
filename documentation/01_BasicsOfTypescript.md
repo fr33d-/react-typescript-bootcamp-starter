@@ -24,9 +24,13 @@
 
 Typescript is a statically typed subset of Javascript, i.e. all valid Javascript code is valid Typescript code, but not the other way round. Using Typescript we can write robust code that is checked during the compile time preventing various kinds of mistakes and errors. Furthermore consuming third party libraries becomes much easier since you don't have to guess the types of arguments as code is self-documenting:
 
+*Ich verstehe noch nicht warum aus den Typen eine Duckumentation erzeugt werden kann. Klar, das kann man sich denken, aber erst mal hat es nichst mit einander zu tun und ist nich der primäre Vorteil. Vielleicht erwähnst du das noch in einem Satz.*
+
 ![](./images/01/3rdPartyCodeCompletion1.png)
 
 In this example you can see that the `useContext` method has one argument named `context` of type `React.Context<T>`. Trying to assign a value that isn't sensible already yields an error in the editor:
+
+*Das Beispiel finde ich für den ersten Kontakt mit dem Thema ein bisschen komplex.*
 
 ![](./images/01/3rdPartyCodeCompletion2.png)
 
@@ -61,7 +65,7 @@ const result3: string = isThirteen(42);
 // error: Type 'boolean' is not assignable to type 'string'.
 ```
 
-As you can see, not only variables but function arguments and function return values can be annotated to make the compiler keep track of them and nag you if you make and mistake. However the above code contains a lot of verbose annotations and fortunately, most of them can be stripped. Typescript is able to infer a lot of information and implicit types just from the usage. The above snippet can be written as the following:
+As you can see, not only variables but function arguments and function return values can be annotated to make the compiler keep track of them and nag you if you make a mistake. However the above code contains a lot of verbose annotations and fortunately, most of them can be stripped. Typescript is able to infer a lot of information and implicit types just from the usage. The above snippet can be written as the following:
 
 ```typescript
 const variable1 = 42;
@@ -128,6 +132,8 @@ const kvPair3: [string, number] = ["key", "value"];
 
 Furthermore accessing the elements of this array will correctly retrieve their types allowing for correct calls to `kvPair1[0].substring(1)` for example. Accessing elements out of bounds will fail since tuples have a fixed size.
 
+*Wie würde man denn dann auf einen Wert daraus zugreifen?*
+
 ### Enums
 
 A feature native to Typescript are enumerations used to assign human readable names to compile-time constant values and group them together.
@@ -168,6 +174,8 @@ enum ErrorMessages {
 >
 > Be careful when working with enums, especially when serializing their values to a store such as a database. By adding or removing new enum values previously stored values might no longer align with the names and values defined in your code. In order to prevent anomalies you should always write tests that assert your enum values stay the same and/or are in the same order.
 
+*Das verstehe ich nicht. Also die Reihenfolge kann sich ändern aber ich kann das mit Tests verhindern, bzw prüfen ob es passiert ist? Was ist denn dann der Effekt den ich versuche zu vermeiden?*
+
 Enums allow you to perform reverse lookups wherein numerical value can be mapped to the respective stringified names.
 
 ```typescript
@@ -184,6 +192,9 @@ console.log(shapeName); // Displays 'Square'
 > **Warning**
 >
 > This reverse lookups do not work for enums with string values.
+
+
+*Oh schade. Gibt es da ein Beispiel? Auch wenn das zu weit führen würde, wie würde es sonst machen?*
 
 ### Constant Enums
 
@@ -208,9 +219,12 @@ var colors = [0, 1, 2, 3];
 
 which reduces bundle size.
 
+
 ### Any
 
 When using 3rd party libraries or working with dynamic data that you can't clearly type you can opt-out of type checking entirely (unless your Linter complains about opting out) by using the `any` type.
+
+*Das ist aber ein kommplexer Satz^^ Schreib doch einfach das es für alles andere ANY gibt und sag dann, dass es vor allem bei 3rd party libraries vorkommt-*
 
 ```typescript
 let anyVariable: any = 42;
@@ -225,9 +239,9 @@ The `any` can be used to opt-out of type checking in legacy code that you migrat
 
 > **Warning**
 >
-> `any` should be used only rarely when you really need it. Not only do you lose type checking capabilities for variables and functions annotated with `any`, you will even lose code completion capabilities of your editor.
+> `any` should be used only rarely when you really need it. You dont only lose type checking capabilities for variables and functions annotated with `any`, you will even lose code completion capabilities of your editor.
 >
-> Furthermore using `any` can cause error that could've been caught during compile time to happen during runtime. Be really careful when relying on this type.
+> Furthermore using `any` can cause errors that could've been caught during compile time to happen during runtime. Be really careful when relying on this type.
 
 ### Unknown
 
@@ -267,6 +281,8 @@ const boolVariable: boolean = variable;
 // error: Type 'unknown' is not assignable to type 'boolean'.
 ```
 
+*Das verstehe ich noch nicht. Wo ist denn jetzt der unterschied? Kann ich eine methode schreiben die einen string will und dann schlägt es fehl und eine zweite die ein unknown will und dann geht es? *
+
 ### Null and Undefined
 
 Typescript distinguishes between variables defined as `null` or actually being `undefined`. Variables eplicitly have to be assigned `null` in order to describe that there is no data. `undefined` however is the value of variables that haven't been assigned at all or explicitly being assigned `undefined`. Colloquially `undefined` is equivalent to an optional value that might not have to exist.
@@ -274,6 +290,8 @@ Typescript distinguishes between variables defined as `null` or actually being `
 > **Information**
 >
 > In the official coding guidelines of the Typescript and VS Code team `null` is forbidden and they enforce to use `undefined` only. This reduces possible errors and confusion between the two types.
+
+*Wozu braucht es dann `null`? Gibt es da ein Beispie?**
 
 Typescript is able to deduce whether a variable is defined in a specific scope when you try to access it:
 
@@ -309,7 +327,11 @@ const neverArrayAgain = [1, 2, 3].reduce((previous, next) => [...previous, next]
 // error: Type 'number' is not assignable to type 'never'.
 ```
 
+*Das ist aber ein komplexes Beispiel (puh) ...*
+
 We are attempting to append a `number` to a `never[]` which isn't posible since `never` is incompatible to all other types, even `any`.
+
+*Und wie umgehe ich das, bzw in welchen Fällen könnte ich so etwas gebrauchen?*
 
 ## Advanced Types
 
@@ -366,6 +388,8 @@ type ManualIntersectionOfAandB = {
 // This is a simple method that merges both objects using spread syntax.
 const merge = (objA: ObjectTypeA, objB: ObjectTypeB): ObjectTypeA & ObjectTypeB
     => ({...objA, ...objB});
+
+    *Also ist das letzte Beispiel das selbe wie das darüber?*
 ```
 
 ### Union Types
@@ -441,6 +465,7 @@ function toString<ArgType>(arg: ArgType) {
     return `${arg}`;
 }
 ```
+*That escalated quickly*
 
 > **Warning**
 >
@@ -468,15 +493,9 @@ type ResponseCode = Maybe<{ value: number; }>;
 // Is equivalent to
 type ResponseCodeFull = { value: number; } | undefined;
 
-type Predicate<T> = (arg: T) => boolean;
-
-const isThirteen: Predicate<number> = (arg) => arg === 13;
-
 class Component<PropsType, StateType> {
-    public props: PropsType;
-    public state: StateType;
-
-    /* ... */
+    props: PropsType;
+    state: StateType;
 
     public setState(newState: StateType): StateType {
         /* ... */
@@ -484,4 +503,4 @@ class Component<PropsType, StateType> {
 }
 ```
 
-In the previous snippet we were able to define a generic `Predicate` type that works with all argument types. Furthermore you can see a version of `isThirteen` *explicitly* typed as `Predicate<number>` which implies that the argument `arg` **must** be a `number` hence we don't even need to annotate it explicitly.
+*Beim letzten Beispiel verstehe ich nur noch Bahnhof.*
